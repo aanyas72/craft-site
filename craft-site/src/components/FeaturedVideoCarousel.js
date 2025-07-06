@@ -85,7 +85,7 @@ export default function FeaturedVideoCarousel() {
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
                 <div className="p-4 w-full">
-                  <div className="font-semibold text-lg">{video.creator}</div>
+                  <div className="font-semibold text-lg text-gray-800">{video.creator}</div>
                   <div className="text-sm text-gray-600">{video.craft}</div>
                 </div>
               </div>

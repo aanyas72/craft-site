@@ -40,7 +40,7 @@ export default function FeaturedProductsGrid() {
                 alt={product.name}
                 className="w-full h-40 object-cover rounded-md mb-4"
               />
-              <div className="font-semibold text-lg mb-1 text-center">{product.name}</div>
+              <div className="font-semibold text-lg mb-1 text-center text-gray-800">{product.name}</div>
               <div className="text-[#8B5C2A] font-bold text-md">{product.price}</div>
             </div>
           ))}
