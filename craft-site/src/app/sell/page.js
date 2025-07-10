@@ -16,15 +16,36 @@ export default function SellPage() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
         setUser(user);
-        // Check if user is already a seller
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_seller')
-          .eq('id', user.id)
-          .single();
         
-        if (profile) {
-          setIsSeller(profile.is_seller);
+        // Check sessionStorage first for seller status
+        const cachedStatus = sessionStorage.getItem(`seller_${user.id}`);
+        if (cachedStatus !== null) {
+          setIsSeller(cachedStatus === 'true');
+          setLoading(false);
+          return;
+        }
+        
+        // If not in sessionStorage, check database
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('is_seller')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile && !error) {
+            const sellerStatus = profile.is_seller;
+            setIsSeller(sellerStatus);
+            // Cache the result
+            sessionStorage.setItem(`seller_${user.id}`, sellerStatus.toString());
+          } else {
+            setIsSeller(false);
+            sessionStorage.setItem(`seller_${user.id}`, 'false');
+          }
+        } catch (error) {
+          console.log('Profile not found, user is not a seller');
+          setIsSeller(false);
+          sessionStorage.setItem(`seller_${user.id}`, 'false');
         }
       } else {
         router.push("/login");
@@ -39,20 +60,52 @@ export default function SellPage() {
     
     setUpgrading(true);
     try {
-      // Update the user's profile to mark them as a seller
-      const { error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile, error: checkError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          is_seller: true,
-          updated_at: new Date()
-        });
+        .select('id')
+        .eq('id', user.id)
+        .single();
 
-      if (error) {
-        console.error('Error upgrading to seller:', error);
+      if (checkError && checkError.code !== 'PGRST116') {
+        // PGRST116 is "not found" error, which is expected for new users
+        console.error('Error checking profile:', checkError);
+        alert('Failed to check profile. Please try again.');
+        return;
+      }
+
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        result = await supabase
+          .from('profiles')
+          .update({ 
+            is_seller: true, 
+            updated_at: new Date() 
+          })
+          .eq('id', user.id);
+      } else {
+        // Insert new profile
+        result = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            is_seller: true,
+            created_at: new Date(),
+            updated_at: new Date()
+          });
+      }
+
+      if (result.error) {
+        console.error('Error upgrading to seller:', result.error);
         alert('Failed to upgrade to seller account. Please try again.');
       } else {
         setIsSeller(true);
+        // Update the global seller status
+        if (window.updateSellerStatus) {
+          window.updateSellerStatus(user.id, true);
+        }
         alert('Congratulations! Your account has been upgraded to a seller account.');
       }
     } catch (error) {
@@ -110,8 +163,11 @@ export default function SellPage() {
             <div className="space-y-6">
               <div className="space-y-4">
                 <p className="text-lg text-gray-600">
-                  Ready to share your handmade creations with the world? 
-                  Upgrade your account to start selling on our platform.
+                  Ready to share your handmade creations with the world?<br />
+                  Start selling today!<br />
+                  <span className="text-sm text-gray-500">
+                    (No fees, no commissions, no hidden costs)
+                  </span>
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-blue-800 mb-2">Seller Benefits:</h3>
