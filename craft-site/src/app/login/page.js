@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import { supabase } from "../../../lib/supabase";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -9,14 +10,30 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.push("/profile");
+      }
+    });
+  }, [router]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
     }
-    // Fake login: set user in localStorage
-    localStorage.setItem("user", JSON.stringify({ email }));
+    // Supabase login
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+      return;
+    }
     router.push("/");
   };
 
@@ -30,14 +47,14 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full mb-4 px-4 py-2 border rounded focus:outline-none placeholder-gray-600"
+            className="w-full mb-4 px-4 py-2 border rounded focus:outline-none placeholder-gray-600 text-gray-900"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
             placeholder="Password"
-            className="w-full mb-6 px-4 py-2 border rounded focus:outline-none placeholder-gray-600"
+            className="w-full mb-6 px-4 py-2 border rounded focus:outline-none placeholder-gray-600 text-gray-900"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

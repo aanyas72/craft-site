@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import { supabase } from "../../../lib/supabase";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -9,32 +10,51 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is signed in
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-      router.push("/profile");
-    }
-    setLoading(false);
+    // If user is already signed in, redirect to profile
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUser(user);
+        router.push("/profile");
+      }
+      setLoading(false);
+    });
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
     }
-    // Fake signup: set user in localStorage
-    const userData = { email };
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
+    // Supabase signup
+    const { error, data } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    // Show success message
+    if (data.user && !data.user.confirmed_at) {
+      setSuccess("Signup successful! Please check your email to confirm your account.");
+    } else {
+      setSuccess("Signup successful! Redirecting to your profile...");
+      setTimeout(() => {
+        setUser(data.user);
+        router.push("/profile");
+      }, 2000);
+    }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     router.push("/");
   };
@@ -80,17 +100,18 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
           <h1 className="text-2xl font-bold mb-6 text-center text-[#5a3c20]">Sign Up</h1>
           {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
+          {success && <div className="mb-4 text-green-600 text-center">{success}</div>}
           <input
             type="email"
             placeholder="Email"
-            className="w-full mb-4 px-4 py-2 border rounded focus:outline-none placeholder-gray-600"
+            className="w-full mb-4 px-4 py-2 border rounded focus:outline-none placeholder-gray-600 text-gray-900"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
             placeholder="Password"
-            className="w-full mb-6 px-4 py-2 border rounded focus:outline-none placeholder-gray-600"
+            className="w-full mb-6 px-4 py-2 border rounded focus:outline-none placeholder-gray-600 text-gray-900"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

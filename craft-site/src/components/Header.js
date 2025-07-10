@@ -1,18 +1,60 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FiUser, FiShoppingBag } from "react-icons/fi";
+import { FiUser, FiShoppingBag, FiPackage } from "react-icons/fi";
+import { supabase } from "../../lib/supabase";
 
 export default function Header() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
-    // Check if user is signed in
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
+    let isMounted = true;
+    // Listen for Supabase auth state changes
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (isMounted) {
+        setUser(session?.user || null);
+        if (session?.user) {
+          // Check if user is a seller
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_seller')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (isMounted && profile) {
+            setIsSeller(profile.is_seller);
+          }
+        } else {
+          setIsSeller(false);
+        }
+      }
+    });
+    // Set initial user
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (isMounted) {
+        setUser(user);
+        if (user) {
+          // Check if user is a seller
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_seller')
+            .eq('id', user.id)
+            .single();
+          
+          if (isMounted && profile) {
+            setIsSeller(profile.is_seller);
+          }
+        }
+      }
+      if (isMounted) setLoading(false);
+    });
+    return () => {
+      isMounted = false;
+      listener?.subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -30,7 +72,7 @@ export default function Header() {
         </div>
         {/* User Menu */}
         <nav className="flex items-center gap-4">
-          {user ? (
+          {loading ? null : user ? (
             // Profile Icon (if logged in)
             <button aria-label="Profile" className="p-2 hover:bg-[#ece7db] rounded-full transition" onClick={() => router.push('/profile')}>
               <FiUser className="w-6 h-6" strokeWidth={2} />
@@ -44,6 +86,12 @@ export default function Header() {
               Login
             </button>
           )}
+          {/* Shop Icon (only for sellers) */}
+          {isSeller && (
+            <button aria-label="Shop" className="p-2 hover:bg-[#ece7db] rounded-full transition" onClick={() => router.push('/shop-now')}>
+              <FiPackage className="w-6 h-6" strokeWidth={2} />
+            </button>
+          )}
           {/* Bag Icon (react-icons Feather) */}
           <button aria-label="Bag" className="p-2 hover:bg-[#ece7db] rounded-full transition" onClick={() => router.push('/bag')}>
             <FiShoppingBag className="w-6 h-6" strokeWidth={2} />
@@ -55,6 +103,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto flex justify-center gap-8 pb-3 pt-3">
           <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/video-discovery')}>Video Discovery</button>
           <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/shop-now')}>Shop Now</button>
+          <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/sell')}>Sell</button>
         </div>
       </div>
     </header>
