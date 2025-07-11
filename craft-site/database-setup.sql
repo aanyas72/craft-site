@@ -9,8 +9,23 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create products table for storing user listings
+CREATE TABLE IF NOT EXISTS products (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  seller_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  price DECIMAL(10,2) NOT NULL,
+  category TEXT,
+  image_url TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for profiles table
 CREATE POLICY "Users can view their own profile" ON profiles
@@ -21,6 +36,22 @@ CREATE POLICY "Users can update their own profile" ON profiles
 
 CREATE POLICY "Users can insert their own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Create policies for products table
+CREATE POLICY "Users can view all active products" ON products
+  FOR SELECT USING (is_active = true);
+
+CREATE POLICY "Sellers can view their own products" ON products
+  FOR SELECT USING (auth.uid() = seller_id);
+
+CREATE POLICY "Sellers can insert their own products" ON products
+  FOR INSERT WITH CHECK (auth.uid() = seller_id);
+
+CREATE POLICY "Sellers can update their own products" ON products
+  FOR UPDATE USING (auth.uid() = seller_id);
+
+CREATE POLICY "Sellers can delete their own products" ON products
+  FOR DELETE USING (auth.uid() = seller_id);
 
 -- Create a function to handle new user signups
 CREATE OR REPLACE FUNCTION handle_new_user()

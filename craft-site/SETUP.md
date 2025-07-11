@@ -7,7 +7,7 @@ This guide explains how to set up the seller functionality for the craft website
 1. **Set up Supabase Database:**
    - Go to your Supabase project dashboard
    - Navigate to the SQL Editor
-   - Run the SQL commands from `database-setup.sql` to create the profiles table
+   - Run the SQL commands from `database-setup.sql` to create the profiles and products tables
 
 2. **Environment Variables:**
    Make sure you have the following environment variables set in your `.env.local` file:
@@ -24,13 +24,22 @@ This guide explains how to set up the seller functionality for the craft website
 - Shows seller benefits and account status
 - Redirects to login if user is not authenticated
 
+### My Shop Page (`/my-shop`)
+- **Product Management:** View, add, edit, and delete your product listings
+- **Product Form:** Comprehensive form for adding/editing products with fields for name, price, category, description, and image URL
+- **Product Status:** Toggle products between active and inactive states
+- **Empty State:** Encouraging message when no products are listed
+- **Access Control:** Only accessible to users with seller status
+
 ### Header Component
-- **Shop button** appears next to the bag button only for sellers
-- Uses `FiStore` icon from react-icons
+- **Shop button** appears next to the bag button only for sellers (now links to `/my-shop`)
+- **My Shop tab** appears in navigation for sellers
+- Uses `FiPackage` icon from react-icons
 - Automatically checks seller status on page load and auth state changes
 
 ### Database Schema
-The `profiles` table includes:
+
+#### Profiles Table
 - `id` (UUID, references auth.users)
 - `email` (TEXT)
 - `is_seller` (BOOLEAN, default FALSE)
@@ -38,12 +47,24 @@ The `profiles` table includes:
 - `shop_description` (TEXT, for future use)
 - `created_at` and `updated_at` timestamps
 
+#### Products Table
+- `id` (UUID, primary key)
+- `seller_id` (UUID, references auth.users)
+- `name` (TEXT, required)
+- `description` (TEXT)
+- `price` (DECIMAL, required)
+- `category` (TEXT)
+- `image_url` (TEXT)
+- `is_active` (BOOLEAN, default TRUE)
+- `created_at` and `updated_at` timestamps
+
 ## How It Works
 
-1. **User Authentication:** Users must be logged in to access the sell page
+1. **User Authentication:** Users must be logged in to access seller features
 2. **Seller Upgrade:** Clicking "Become a Seller" updates the user's profile in the database
-3. **Header Updates:** The shop button automatically appears for sellers
-4. **Row Level Security:** Database policies ensure users can only access their own profile data
+3. **Header Updates:** The shop button and My Shop tab automatically appear for sellers
+4. **Product Management:** Sellers can manage their product listings through the My Shop page
+5. **Row Level Security:** Database policies ensure users can only access their own data
 
 ## Testing
 
@@ -51,4 +72,6 @@ The `profiles` table includes:
 2. Navigate to `/sell`
 3. Click "Become a Seller"
 4. Check that the shop button appears in the header
-5. Refresh the page to verify the seller status persists 
+5. Navigate to `/my-shop` to manage products
+6. Add, edit, and delete products to test functionality
+7. Refresh the page to verify the seller status persists 

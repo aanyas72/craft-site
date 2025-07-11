@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FiUser, FiShoppingBag, FiPackage } from "react-icons/fi";
+import { LuStore } from "react-icons/lu";
 import { supabase } from "../../lib/supabase";
 
 export default function Header() {
@@ -132,8 +133,8 @@ export default function Header() {
           )}
           {/* Shop Icon (only for sellers) */}
           {isSeller && (
-            <button aria-label="Shop" className="p-2 hover:bg-[#ece7db] rounded-full transition" onClick={() => router.push('/shop-now')}>
-              <FiPackage className="w-6 h-6" strokeWidth={2} />
+            <button aria-label="Shop" className="p-2 hover:bg-[#ece7db] rounded-full transition" onClick={() => router.push('/my-shop')}>
+              <LuStore className="w-6 h-6" />
             </button>
           )}
           {/* Bag Icon (react-icons Feather) */}
@@ -147,6 +148,9 @@ export default function Header() {
         <div className="max-w-7xl mx-auto flex justify-center gap-8 pb-3 pt-3">
           <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/video-discovery')}>Video Discovery</button>
           <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/shop-now')}>Shop Now</button>
+          {isSeller && (
+            <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/my-shop')}>My Shop</button>
+          )}
           <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/sell')}>Sell</button>
         </div>
       </div>
