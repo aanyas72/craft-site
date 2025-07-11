@@ -9,6 +9,7 @@ export default function MyShopPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSeller, setIsSeller] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const [products, setProducts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -17,8 +18,11 @@ export default function MyShopPage() {
     description: "",
     price: "",
     category: "",
-    image_url: ""
+    image_url: "",
+    video_url: ""
   });
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoUploading, setVideoUploading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,36 +33,46 @@ export default function MyShopPage() {
         
         // Check seller status
         const cachedStatus = sessionStorage.getItem(`seller_${user.id}`);
-        if (cachedStatus !== null) {
+        const cachedVerifiedStatus = sessionStorage.getItem(`verified_${user.id}`);
+        if (cachedStatus !== null && cachedVerifiedStatus !== null) {
           const sellerStatus = cachedStatus === 'true';
+          const verifiedStatus = cachedVerifiedStatus === 'true';
           setIsSeller(sellerStatus);
+          setIsVerified(verifiedStatus);
           if (sellerStatus) {
             await fetchUserProducts(user.id);
           }
         } else {
-          // Check database for seller status
+          // Check database for seller status and verification
           try {
             const { data: profile, error } = await supabase
               .from('profiles')
-              .select('is_seller')
+              .select('is_seller, is_verified')
               .eq('id', user.id)
               .single();
             
             if (profile && !error) {
               const sellerStatus = profile.is_seller;
+              const verifiedStatus = profile.is_verified || false;
               setIsSeller(sellerStatus);
+              setIsVerified(verifiedStatus);
               sessionStorage.setItem(`seller_${user.id}`, sellerStatus.toString());
+              sessionStorage.setItem(`verified_${user.id}`, verifiedStatus.toString());
               if (sellerStatus) {
                 await fetchUserProducts(user.id);
               }
             } else {
               setIsSeller(false);
+              setIsVerified(false);
               sessionStorage.setItem(`seller_${user.id}`, 'false');
+              sessionStorage.setItem(`verified_${user.id}`, 'false');
             }
           } catch (error) {
             console.log('Profile not found, user is not a seller');
             setIsSeller(false);
+            setIsVerified(false);
             sessionStorage.setItem(`seller_${user.id}`, 'false');
+            sessionStorage.setItem(`verified_${user.id}`, 'false');
           }
         }
       } else {
@@ -98,7 +112,8 @@ export default function MyShopPage() {
         description: formData.description,
         price: parseFloat(formData.price),
         category: formData.category,
-        image_url: formData.image_url || null
+        image_url: formData.image_url || null,
+        video_url: formData.video_url || null
       };
 
       let result;
@@ -145,7 +160,8 @@ export default function MyShopPage() {
       description: product.description || "",
       price: product.price.toString(),
       category: product.category || "",
-      image_url: product.image_url || ""
+      image_url: product.image_url || "",
+      video_url: product.video_url || ""
     });
     setShowAddForm(true);
   };
@@ -191,14 +207,69 @@ export default function MyShopPage() {
     }
   };
 
+  const handleVideoUpload = async (file) => {
+    if (!file) return;
+    
+    // Check file size (50MB = 50 * 1024 * 1024 bytes)
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('Video file size must be less than 50MB');
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please upload a valid video file (MP4, AVI, MOV, WMV, FLV, or WebM)');
+      return;
+    }
+
+    setVideoUploading(true);
+    try {
+      const fileName = `videos/${user.id}/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('product-videos')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Error uploading video:', error);
+        alert('Failed to upload video. Please try again.');
+        return;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-videos')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, video_url: publicUrl }));
+      alert('Video uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      alert('Failed to upload video. Please try again.');
+    } finally {
+      setVideoUploading(false);
+    }
+  };
+
+  const handleVideoFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setVideoFile(file);
+      handleVideoUpload(file);
+    }
+  };
+
   const handleCancel = () => {
     setFormData({
       name: "",
       description: "",
       price: "",
       category: "",
-      image_url: ""
+      image_url: "",
+      video_url: ""
     });
+    setVideoFile(null);
     setEditingProduct(null);
     setShowAddForm(false);
   };
@@ -260,6 +331,42 @@ export default function MyShopPage() {
               Add New Product
             </button>
           </div>
+
+          {/* Verification Banner */}
+          {isSeller && !isVerified && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-800">
+                      Your shop is not verified. 
+                      <button className="ml-2 text-yellow-800 underline hover:text-yellow-900 font-medium">
+                        Get Verified 🔒
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isSeller && user && (
+            <div className="text-center mb-4">
+              <a
+                href={`/shop/${user.id}`}
+                className="text-blue-600 underline hover:text-blue-800"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View your public shop
+              </a>
+            </div>
+          )}
 
           {/* Add/Edit Product Form */}
           {showAddForm && (
@@ -349,6 +456,34 @@ export default function MyShopPage() {
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Video (Max 50MB)
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoFileChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
+                      disabled={videoUploading}
+                    />
+                    {videoUploading && (
+                      <div className="flex items-center text-sm text-blue-600">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Uploading video...
+                      </div>
+                    )}
+                    {formData.video_url && (
+                      <div className="text-sm text-green-600">
+                        ✓ Video uploaded successfully
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      Supported formats: MP4, AVI, MOV, WMV, FLV, WebM
+                    </p>
+                  </div>
+                </div>
                 <div className="flex gap-3">
                   <button
                     type="submit"
@@ -405,6 +540,18 @@ export default function MyShopPage() {
                   )}
                   {product.description && (
                     <p className="text-sm text-gray-700 mb-3 line-clamp-2">{product.description}</p>
+                  )}
+                  {product.video_url && (
+                    <div className="mb-3">
+                      <video 
+                        controls 
+                        className="w-full h-32 object-cover rounded"
+                        preload="metadata"
+                      >
+                        <source src={product.video_url} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
                   )}
                   <div className="flex gap-2">
                     <button

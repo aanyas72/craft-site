@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT,
   is_seller BOOLEAN DEFAULT FALSE,
+  is_verified BOOLEAN DEFAULT FALSE,
   shop_name TEXT,
   shop_description TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS products (
   price DECIMAL(10,2) NOT NULL,
   category TEXT,
   image_url TEXT,
+  video_url TEXT,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
