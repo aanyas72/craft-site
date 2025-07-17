@@ -4,12 +4,14 @@ import { useRouter } from "next/navigation";
 import { FiUser, FiShoppingBag, FiPackage } from "react-icons/fi";
 import { LuStore } from "react-icons/lu";
 import { supabase } from "../../lib/supabase";
+import { useUser } from '../context/UserContext';
 
 export default function Header() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSeller, setIsSeller] = useState(false);
+  const { user: contextUser, loading: contextLoading } = useUser();
 
   useEffect(() => {
     let isMounted = true;
@@ -151,7 +153,13 @@ export default function Header() {
           {isSeller && (
             <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/my-shop')}>My Shop</button>
           )}
-          <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/sell')}>Sell</button>
+          <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => {
+            if (!contextLoading && !contextUser) {
+              router.push('/login?from=sell');
+            } else {
+              router.push('/sell');
+            }
+          }}>Sell</button>
         </div>
       </div>
     </header>

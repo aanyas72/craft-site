@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Header from "../components/Header";
 import Hero from "../components/Hero";
 import FeaturedVideoCarousel from "../components/FeaturedVideoCarousel";
@@ -18,7 +17,6 @@ export default function Home() {
         <CategoriesFilters />
         <TestimonialsSocialProof />
       </main>
-      {/* TODO: Footer */}
       <Footer />
     </div>
   );

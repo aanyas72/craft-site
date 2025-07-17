@@ -2,21 +2,26 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import { useUser } from '../../context/UserContext';
 import { supabase } from "../../../lib/supabase";
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const { user, loading } = useUser();
+  const searchParams = useSearchParams();
+  const fromBag = searchParams.get('from') === 'bag';
+  const fromSell = searchParams.get('from') === 'sell';
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        router.push("/profile");
-      }
-    });
-  }, [router]);
+    if (!loading && user) {
+      router.push("/dashboard");
+    }
+  }, [user, router, loading]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +48,18 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center">
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
           <h1 className="text-2xl font-bold mb-6 text-center text-[#5a3c20]">Login</h1>
+          {/* Banner for redirected from bag */}
+          {fromBag && (
+            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded text-center font-semibold">
+              You must login to checkout.
+            </div>
+          )}
+          {/* Banner for redirected from sell */}
+          {fromSell && (
+            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded text-center font-semibold">
+              You must be logged in to start selling.
+            </div>
+          )}
           {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
           <input
             type="email"

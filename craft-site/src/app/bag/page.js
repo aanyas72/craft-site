@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import { useUser } from '../../context/UserContext';
 
 const cartItems = [
   {
@@ -21,22 +22,14 @@ const cartItems = [
 ];
 
 export default function BagPage() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is signed in
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
-      // Redirect to login if not signed in
-      router.push("/login");
-      return;
+    if (!loading && !user) {
+      router.push("/login?from=bag");
     }
-    setLoading(false);
-  }, [router]);
+  }, [user, loading, router]);
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
@@ -66,11 +59,11 @@ export default function BagPage() {
       <main className="flex-1 py-10">
         <div className="max-w-7xl mx-auto px-4">
           <h1 className="text-3xl font-bold mb-8 text-center text-[#5a3c20]">Shopping Bag</h1>
-          
+
           {cartItems.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-600 text-lg">Your bag is empty</p>
-              <button 
+              <button
                 onClick={() => router.push('/shop-now')}
                 className="mt-4 bg-[#8B5C2A] text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-[#6B3F16] transition"
               >
