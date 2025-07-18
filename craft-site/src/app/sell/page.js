@@ -3,57 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import Header from "../../components/Header";
+import { useUser } from '../../context/UserContext';
 
 export default function SellPage() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSeller, setIsSeller] = useState(false);
+  const { user, loading, isSeller, isSellerLoading, refreshSellerStatus } = useUser();
   const [upgrading, setUpgrading] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    // Check if user is signed in with Supabase
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        setUser(user);
-        
-        // Check sessionStorage first for seller status
-        const cachedStatus = sessionStorage.getItem(`seller_${user.id}`);
-        if (cachedStatus !== null) {
-          setIsSeller(cachedStatus === 'true');
-          setLoading(false);
-          return;
-        }
-        
-        // If not in sessionStorage, check database
-        try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('is_seller')
-            .eq('id', user.id)
-            .single();
-          
-          if (profile && !error) {
-            const sellerStatus = profile.is_seller;
-            setIsSeller(sellerStatus);
-            // Cache the result
-            sessionStorage.setItem(`seller_${user.id}`, sellerStatus.toString());
-          } else {
-            setIsSeller(false);
-            sessionStorage.setItem(`seller_${user.id}`, 'false');
-          }
-        } catch (error) {
-          console.log('Profile not found, user is not a seller');
-          setIsSeller(false);
-          sessionStorage.setItem(`seller_${user.id}`, 'false');
-        }
-      } else {
-        router.push("/login");
-        return;
-      }
-      setLoading(false);
-    });
-  }, [router]);
 
   const handleUpgradeToSeller = async () => {
     if (!user) return;
@@ -101,10 +56,9 @@ export default function SellPage() {
         console.error('Error upgrading to seller:', result.error);
         alert('Failed to upgrade to seller account. Please try again.');
       } else {
-        setIsSeller(true);
-        // Update the global seller status
-        if (window.updateSellerStatus) {
-          window.updateSellerStatus(user.id, true);
+        // Refresh global seller status in context
+        if (refreshSellerStatus) {
+          await refreshSellerStatus();
         }
         alert('Congratulations! Your account has been upgraded to a seller account.');
       }

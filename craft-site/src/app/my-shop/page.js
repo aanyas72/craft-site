@@ -4,11 +4,10 @@ import { useRouter } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiEyeOff } from "react-icons/fi";
 import { supabase } from "../../../lib/supabase";
 import Header from "../../components/Header";
+import { useUser } from '../../context/UserContext';
 
 export default function MyShopPage() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSeller, setIsSeller] = useState(false);
+  const { user, loading, isSeller } = useUser();
   const [isVerified, setIsVerified] = useState(false);
   const [products, setProducts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -26,62 +25,13 @@ export default function MyShopPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is signed in with Supabase
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        setUser(user);
-        
-        // Check seller status
-        const cachedStatus = sessionStorage.getItem(`seller_${user.id}`);
-        const cachedVerifiedStatus = sessionStorage.getItem(`verified_${user.id}`);
-        if (cachedStatus !== null && cachedVerifiedStatus !== null) {
-          const sellerStatus = cachedStatus === 'true';
-          const verifiedStatus = cachedVerifiedStatus === 'true';
-          setIsSeller(sellerStatus);
-          setIsVerified(verifiedStatus);
-          if (sellerStatus) {
-            await fetchUserProducts(user.id);
-          }
-        } else {
-          // Check database for seller status and verification
-          try {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('is_seller, is_verified')
-              .eq('id', user.id)
-              .single();
-            
-            if (profile && !error) {
-              const sellerStatus = profile.is_seller;
-              const verifiedStatus = profile.is_verified || false;
-              setIsSeller(sellerStatus);
-              setIsVerified(verifiedStatus);
-              sessionStorage.setItem(`seller_${user.id}`, sellerStatus.toString());
-              sessionStorage.setItem(`verified_${user.id}`, verifiedStatus.toString());
-              if (sellerStatus) {
-                await fetchUserProducts(user.id);
-              }
-            } else {
-              setIsSeller(false);
-              setIsVerified(false);
-              sessionStorage.setItem(`seller_${user.id}`, 'false');
-              sessionStorage.setItem(`verified_${user.id}`, 'false');
-            }
-          } catch (error) {
-            console.log('Profile not found, user is not a seller');
-            setIsSeller(false);
-            setIsVerified(false);
-            sessionStorage.setItem(`seller_${user.id}`, 'false');
-            sessionStorage.setItem(`verified_${user.id}`, 'false');
-          }
-        }
-      } else {
-        router.push("/login");
-        return;
-      }
-      setLoading(false);
-    });
-  }, [router]);
+    if (!loading && user && isSeller) {
+      fetchUserProducts(user.id);
+    }
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, isSeller, router]);
 
   const fetchUserProducts = async (userId) => {
     try {

@@ -3,26 +3,22 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import { supabase } from "../../../lib/supabase";
+import { useUser } from '../../context/UserContext';
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState("");
   const router = useRouter();
+  const { user, loading } = useUser();
 
+  // If user is already signed in, redirect to profile
   useEffect(() => {
-    // If user is already signed in, redirect to profile
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setUser(user);
-        router.push("/profile");
-      }
-      setLoading(false);
-    });
-  }, []);
+    if (!loading && user) {
+      router.push("/profile");
+    }
+  }, [user, loading, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +43,6 @@ export default function SignupPage() {
     } else {
       setSuccess("Signup successful! Redirecting to your profile...");
       setTimeout(() => {
-        setUser(data.user);
         router.push("/profile");
       }, 2000);
     }
@@ -55,7 +50,6 @@ export default function SignupPage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setUser(null);
     router.push("/");
   };
 

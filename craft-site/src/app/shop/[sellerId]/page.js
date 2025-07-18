@@ -3,9 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import Header from "../../components/Header";
+import { useUser } from '../../context/UserContext';
 
 export default function SellerShopPage() {
   const { sellerId } = useParams();
+  const { user } = useUser();
   const [products, setProducts] = useState([]);
   const [seller, setSeller] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +54,11 @@ export default function SellerShopPage() {
           <h1 className="text-2xl font-bold mb-2 text-center text-[#5a3c20]">
             {seller ? `${seller.email}'s Shop` : "Seller's Shop"}
           </h1>
+          {user && user.id === sellerId && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded text-center font-semibold">
+              This is your shop page. You can manage your products in <a href="/my-shop" className="underline text-green-900">My Shop</a>.
+            </div>
+          )}
         </div>
         <div className="w-full max-w-2xl">
           {products.length === 0 ? (

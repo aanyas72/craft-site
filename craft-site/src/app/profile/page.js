@@ -1,30 +1,21 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import Header from "../../components/Header";
+import { useUser } from '../../context/UserContext';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, isSeller, isSellerLoading, refreshSellerStatus } = useUser();
   const router = useRouter();
-
-  useEffect(() => {
-    // Check if user is signed in with Supabase
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setUser(user);
-      } else {
-        router.push("/login");
-        return;
-      }
-      setLoading(false);
-    });
-  }, [router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setUser(null);
+    // Clear all session and local storage
+    if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+      localStorage.clear();
+    }
     router.push("/");
   };
 

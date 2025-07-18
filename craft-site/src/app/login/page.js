@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { user, loading } = useUser();
+  const { user, loading, refreshUser } = useUser();
   const searchParams = useSearchParams();
   const fromBag = searchParams.get('from') === 'bag';
   const fromSell = searchParams.get('from') === 'sell';
@@ -38,6 +38,10 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
       return;
+    }
+    // Refresh user state in context
+    if (refreshUser) {
+      await refreshUser();
     }
     router.push("/");
   };

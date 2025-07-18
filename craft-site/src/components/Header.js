@@ -1,103 +1,13 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { FiUser, FiShoppingBag, FiPackage } from "react-icons/fi";
 import { LuStore } from "react-icons/lu";
-import { supabase } from "../../lib/supabase";
 import { useUser } from '../context/UserContext';
 
 export default function Header() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSeller, setIsSeller] = useState(false);
-  const { user: contextUser, loading: contextLoading } = useUser();
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    // Function to get seller status from sessionStorage or database
-    const getSellerStatus = async (userId) => {
-      if (!userId) {
-        setIsSeller(false);
-        return;
-      }
-      
-      // Check sessionStorage first (cleared when browser closes)
-      const cachedStatus = sessionStorage.getItem(`seller_${userId}`);
-      if (cachedStatus !== null) {
-        setIsSeller(cachedStatus === 'true');
-        return;
-      }
-      
-      // If not in sessionStorage, check database
-      try {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('is_seller')
-          .eq('id', userId)
-          .single();
-        
-        if (isMounted && profile && !error) {
-          const sellerStatus = profile.is_seller;
-          setIsSeller(sellerStatus);
-          // Cache the result in sessionStorage (safer than localStorage)
-          sessionStorage.setItem(`seller_${userId}`, sellerStatus.toString());
-        } else {
-          setIsSeller(false);
-          sessionStorage.setItem(`seller_${userId}`, 'false');
-        }
-      } catch (error) {
-        console.log('Profile not found, user is not a seller');
-        setIsSeller(false);
-        sessionStorage.setItem(`seller_${userId}`, 'false');
-      }
-    };
-
-    // Function to update seller status (called when user becomes a seller)
-    const updateSellerStatus = (userId, isSeller) => {
-      setIsSeller(isSeller);
-      sessionStorage.setItem(`seller_${userId}`, isSeller.toString());
-    };
-
-    // Listen for Supabase auth state changes
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (isMounted) {
-        const newUser = session?.user || null;
-        setUser(newUser);
-        
-        // Only check seller status if user changed
-        if (newUser && newUser.id !== user?.id) {
-          await getSellerStatus(newUser.id);
-        } else if (!newUser) {
-          setIsSeller(false);
-          // Clear sessionStorage for logged out user
-          if (user?.id) {
-            sessionStorage.removeItem(`seller_${user.id}`);
-          }
-        }
-      }
-    });
-    
-    // Set initial user
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (isMounted) {
-        setUser(user);
-        if (user) {
-          await getSellerStatus(user.id);
-        }
-      }
-      if (isMounted) setLoading(false);
-    });
-    
-    // Expose updateSellerStatus globally so other components can call it
-    window.updateSellerStatus = updateSellerStatus;
-    
-    return () => {
-      isMounted = false;
-      listener?.subscription.unsubscribe();
-    };
-  }, [user?.id]);
+  const { user, loading, isSeller, isSellerLoading } = useUser();
 
   return (
     <header className="w-full bg-[#ffffff] text-[#2d1c10] sticky top-0 z-50">
@@ -134,7 +44,7 @@ export default function Header() {
             </button>
           )}
           {/* Shop Icon (only for sellers) */}
-          {isSeller && (
+          {isSeller && !isSellerLoading && (
             <button aria-label="Shop" className="p-2 hover:bg-[#ece7db] rounded-full transition" onClick={() => router.push('/my-shop')}>
               <LuStore className="w-6 h-6" />
             </button>
@@ -154,7 +64,7 @@ export default function Header() {
             <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => router.push('/my-shop')}>My Shop</button>
           )}
           <button className="font-medium text-[#2d1c10] hover:text-[#bfa77a] transition" onClick={() => {
-            if (!contextLoading && !contextUser) {
+            if (!loading && !user) {
               router.push('/login?from=sell');
             } else {
               router.push('/sell');
