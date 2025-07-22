@@ -20,6 +20,8 @@ export default function MyShopPage() {
     image_url: "",
     video_url: ""
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
   const [videoFile, setVideoFile] = useState(null);
   const [videoUploading, setVideoUploading] = useState(false);
   const router = useRouter();
@@ -55,6 +57,17 @@ export default function MyShopPage() {
     e.preventDefault();
     if (!user) return;
 
+    // Validate required uploads
+    // TODO: change alerts later
+    if (!formData.image_url) {
+      alert('Please upload a product image. Images are required.');
+      return;
+    }
+    if (!formData.video_url) {
+      alert('Please upload a product video. Videos are required.');
+      return;
+    }
+
     try {
       const productData = {
         seller_id: user.id,
@@ -62,8 +75,8 @@ export default function MyShopPage() {
         description: formData.description,
         price: parseFloat(formData.price),
         category: formData.category,
-        image_url: formData.image_url || null,
-        video_url: formData.video_url || null
+        image_url: formData.image_url,
+        video_url: formData.video_url
       };
 
       let result;
@@ -90,8 +103,11 @@ export default function MyShopPage() {
           description: "",
           price: "",
           category: "",
-          image_url: ""
+          image_url: "",
+          video_url: ""
         });
+        setImageFile(null);
+        setVideoFile(null);
         setEditingProduct(null);
         setShowAddForm(false);
         await fetchUserProducts(user.id);
@@ -210,6 +226,59 @@ export default function MyShopPage() {
     }
   };
 
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    
+    // Check file size (10MB = 10 * 1024 * 1024 bytes)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('Image file size must be less than 10MB');
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
+      return;
+    }
+
+    setImageUploading(true);
+    try {
+      const fileName = `images/${user.id}/${Date.now()}_${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Error uploading image:', error);
+        alert('Failed to upload image. Please try again.');
+        return;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, image_url: publicUrl }));
+      alert('Image uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      handleImageUpload(file);
+    }
+  };
+
   const handleCancel = () => {
     setFormData({
       name: "",
@@ -219,6 +288,7 @@ export default function MyShopPage() {
       image_url: "",
       video_url: ""
     });
+    setImageFile(null);
     setVideoFile(null);
     setEditingProduct(null);
     setShowAddForm(false);
@@ -296,7 +366,7 @@ export default function MyShopPage() {
                     <p className="text-sm text-yellow-800">
                       Your shop is not verified. 
                       <button className="ml-2 text-yellow-800 underline hover:text-yellow-900 font-medium">
-                        Get Verified 🔒
+                        Get Verified!
                       </button>
                     </p>
                   </div>
@@ -305,6 +375,7 @@ export default function MyShopPage() {
             </div>
           )}
 
+          {/* TODO: Link this to the public shop */}
           {isSeller && user && (
             <div className="text-center mb-4">
               <a
@@ -316,9 +387,10 @@ export default function MyShopPage() {
                 View your public shop
               </a>
             </div>
-          )}
+          )} 
 
           {/* Add/Edit Product Form */}
+          {/* TODO: get the categories from the product page/db */}
           {showAddForm && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold text-[#5a3c20] mb-4">
@@ -396,19 +468,36 @@ export default function MyShopPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Image URL
+                    Product Image * (Max 10MB)
                   </label>
-                  <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
+                      disabled={imageUploading}
+                      required
+                    />
+                    {imageUploading && (
+                      <div className="flex items-center text-sm text-blue-600">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Uploading image...
+                      </div>
+                    )}
+                    {formData.image_url && (
+                      <div className="text-sm text-green-600">
+                        ✓ Image uploaded successfully
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      Supported formats: JPEG, PNG, GIF, WebP
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Product Video (Max 50MB)
+                    Product Video * (Max 50MB)
                   </label>
                   <div className="space-y-2">
                     <input
@@ -417,6 +506,7 @@ export default function MyShopPage() {
                       onChange={handleVideoFileChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
                       disabled={videoUploading}
+                      required
                     />
                     {videoUploading && (
                       <div className="flex items-center text-sm text-blue-600">

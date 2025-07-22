@@ -1,7 +1,5 @@
 # Seller Account Setup
 
-This guide explains how to set up the seller functionality for the craft website.
-
 ## Database Setup
 
 1. **Set up Supabase Database:**
@@ -10,31 +8,30 @@ This guide explains how to set up the seller functionality for the craft website
    - Run the SQL commands from `database-setup.sql` to create the profiles and products tables
 
 2. **Environment Variables:**
-   Make sure you have the following environment variables set in your `.env.local` file:
+   Set up the following environment variables in your `.env` file:
    ```
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-## Features Implemented
+## Features:
 
 ### Sell Page (`/sell`)
-- **"Start Creating Today"** component in the center
-- **Become a Seller** button that upgrades user account to seller status
+- **"Start Creating Today"** component
+- **Become a Seller** button that changes the user's status to seller
 - Shows seller benefits and account status
 - Redirects to login if user is not authenticated
 
 ### My Shop Page (`/my-shop`)
-- **Product Management:** View, add, edit, and delete your product listings
+- **Product Management:** View, add, edit, and delete product listings
 - **Product Form:** Comprehensive form for adding/editing products with fields for name, price, category, description, and image URL
 - **Product Status:** Toggle products between active and inactive states
 - **Empty State:** Encouraging message when no products are listed
 - **Access Control:** Only accessible to users with seller status
 
 ### Header Component
-- **Shop button** appears next to the bag button only for sellers (now links to `/my-shop`)
+- **Shop button** appears next to the bag button only for sellers (links to `/my-shop`)
 - **My Shop tab** appears in navigation for sellers
-- Uses `FiPackage` icon from react-icons
 - Automatically checks seller status on page load and auth state changes
 
 ### Database Schema
