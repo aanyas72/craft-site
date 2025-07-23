@@ -32,29 +32,31 @@ ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for profiles table
 CREATE POLICY "Users can view their own profile" ON profiles
-  FOR SELECT USING (auth.uid() = id);
+  FOR SELECT USING ((select auth.uid()) = id);
 
 CREATE POLICY "Users can update their own profile" ON profiles
-  FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE USING ((select auth.uid()) = id);
 
 CREATE POLICY "Users can insert their own profile" ON profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
+  FOR INSERT WITH CHECK ((select auth.uid()) = id);
 
 -- Create policies for products table
-CREATE POLICY "Users can view all active products" ON products
-  FOR SELECT USING (is_active = true);
+CREATE POLICY "Users can view active or their own products" ON products
+  FOR SELECT USING (
+    is_active = true OR (select auth.uid()) = seller_id
+  );
 
 CREATE POLICY "Sellers can view their own products" ON products
-  FOR SELECT USING (auth.uid() = seller_id);
+  FOR SELECT USING ((select auth.uid()) = seller_id);
 
 CREATE POLICY "Sellers can insert their own products" ON products
-  FOR INSERT WITH CHECK (auth.uid() = seller_id);
+  FOR INSERT WITH CHECK ((select auth.uid()) = seller_id);
 
 CREATE POLICY "Sellers can update their own products" ON products
-  FOR UPDATE USING (auth.uid() = seller_id);
+  FOR UPDATE USING ((select auth.uid()) = seller_id);
 
 CREATE POLICY "Sellers can delete their own products" ON products
-  FOR DELETE USING (auth.uid() = seller_id);
+  FOR DELETE USING ((select auth.uid()) = seller_id);
 
 -- Create a function to handle new user signups
 CREATE OR REPLACE FUNCTION handle_new_user()
@@ -64,9 +66,12 @@ BEGIN
   VALUES (NEW.id, NEW.email);
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+   SET search_path = public, auth;
 
 -- Create trigger to automatically create profile on user signup
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user(); 
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+CREATE INDEX IF NOT EXISTS idx_products_seller_id ON products(seller_id); 

@@ -34,7 +34,7 @@
 - **My Shop tab** appears in navigation for sellers
 - Automatically checks seller status on page load and auth state changes
 
-### Database Schema
+## Database Schema:
 
 #### Profiles Table
 - `id` (UUID, references auth.users)
