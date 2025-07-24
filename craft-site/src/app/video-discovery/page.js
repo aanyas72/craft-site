@@ -1,111 +1,102 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 import Header from "../../components/Header";
 
-const videos = [
+// Mock data for products with video and seller info
+const mockProducts = [
   {
     id: 1,
-    src: "/placeholder-video.mp4",
-    creator: "Creator 1",
-    craft: "Making Jewelry",
-    description: "Watch the beautiful process of handcrafting silver jewelry."
+    name: "Handcrafted Silver Ring",
+    description: "A beautiful handmade silver ring, crafted with care.",
+    price: 45.00,
+    category: "Jewelry",
+    image_url: "/handmaking.jpeg",
+    video_url: "/placeholder-video.mp4",
+    seller: {
+      email: "seller1@example.com",
+      shop_name: "SilverWorks",
+      shop_description: "Unique handcrafted silver jewelry from local artisans."
+    }
   },
   {
     id: 2,
-    src: "/placeholder-video.mp4",
-    creator: "Creator 2",
-    craft: "Pottery",
-    description: "Discover the art of pottery making from clay to finished piece."
-  },
-  {
-    id: 3,
-    src: "/placeholder-video.mp4",
-    creator: "Creator 3",
-    craft: "Knitting",
-    description: "Learn the intricate patterns of hand knitting."
-  },
-  {
-    id: 4,
-    src: "/placeholder-video.mp4",
-    creator: "Creator 4",
-    craft: "Woodwork",
-    description: "See the transformation of raw wood into beautiful furniture."
-  },
-  {
-    id: 5,
-    src: "/placeholder-video.mp4",
-    creator: "Creator 5",
-    craft: "Glass Blowing",
-    description: "Witness the mesmerizing art of glass blowing."
-  },
-  {
-    id: 6,
-    src: "/placeholder-video.mp4",
-    creator: "Creator 6",
-    craft: "Leather Craft",
-    description: "Explore the traditional craft of leather working."
+    name: "Ceramic Vase",
+    description: "Elegant ceramic vase, perfect for home decor.",
+    price: 60.00,
+    category: "Ceramics",
+    image_url: "/placeholder-product2.jpg",
+    video_url: "/placeholder-video.mp4",
+    seller: {
+      email: "potter@example.com",
+      shop_name: "Clay Creations",
+      shop_description: "Hand-thrown pottery and ceramics."
+    }
   }
 ];
 
 export default function VideoDiscoveryPage() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-//   useEffect(() => {
-    // Check if user is signed in
-    // const userData = localStorage.getItem("user");
-    // if (userData) {
-    //   setUser(JSON.parse(userData));
-    // } else {
-    //   // Redirect to login if not signed in
-    //   router.push("/login");
-    //   return;
-    // }
-//     setLoading(false);
-//   }, [router]);
-
-//   if (loading) {
-//     return (
-//       <div className="min-h-screen flex flex-col bg-gray-50">
-//         <Header />
-//         <main className="flex-1 flex items-center justify-center">
-//           <div className="text-center">Loading...</div>
-//         </main>
-//       </div>
-//     );
-//   }
-
-//   if (!user) {
-//     return null; // Will redirect to login
-//   }
+  const product = mockProducts[0];
+  const seller = product.seller;
+  const loading = false;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-1 py-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-8 text-center text-[#5a3c20]">Video Discovery</h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {videos.map((video) => (
-              <div key={video.id} className="bg-white rounded-lg shadow hover:shadow-lg transition">
-                <video
-                  src={video.src}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-                <div className="p-6">
-                  <div className="font-semibold text-lg text-gray-800 mb-2">{video.creator}</div>
-                  <div className="text-sm text-gray-600 mb-3">{video.craft}</div>
-                  <p className="text-gray-700">{video.description}</p>
+      <main className="flex-1 flex flex-col items-center justify-center py-10">
+        <div className="w-full max-w-5xl flex flex-col md:flex-row bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Video Player (Left) */}
+          <div className="md:w-2/3 w-full bg-black flex items-center justify-center">
+            {loading ? (
+              <div className="text-white text-center w-full py-32">Loading video...</div>
+            ) : product && product.video_url ? (
+              <video
+                src={product.video_url}
+                controls
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                className="w-full h-[60vh] object-contain bg-black"
+              />
+            ) : (
+              <div className="text-white text-center w-full py-32">No video found.</div>
+            )}
+          </div>
+          {/* Details (Right) */}
+          <div className="md:w-1/3 w-full p-8 flex flex-col justify-center">
+            {loading ? (
+              <div className="text-gray-500">Loading details...</div>
+            ) : product ? (
+              <>
+                <h2 className="text-2xl font-bold mb-2 text-[#5a3c20]">{product.name}</h2>
+                <p className="text-gray-700 mb-2">{product.description}</p>
+                <div className="mb-2">
+                  <span className="font-semibold text-gray-800">Category: {product.category}</span>
                 </div>
-              </div>
-            ))}
+                <div className="mb-2">
+                  <span className="font-semibold text-gray-800">Price: ${product.price} </span>
+                </div>
+                {product.image_url && (
+                  <img src={product.image_url} alt={product.name} className="w-full h-40 object-cover rounded mb-4" />
+                )}
+                <hr className="my-4" />
+                <div>
+                  <div className="font-semibold text-lg text-gray-800 mb-1">Seller Info</div>
+                  {seller ? (
+                    <>
+                      <div className="text-gray-700 mb-1">Email: {seller.email}</div>
+                      {seller.shop_name && <div className="text-gray-700 mb-1">Shop: {seller.shop_name}</div>}
+                      {seller.shop_description && <div className="text-gray-600 text-sm mb-1">{seller.shop_description}</div>}
+                    </>
+                  ) : (
+                    <div className="text-gray-500">Seller info not found.</div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-gray-500">No product details found.</div>
+            )}
           </div>
         </div>
       </main>
