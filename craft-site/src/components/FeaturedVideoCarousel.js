@@ -60,7 +60,9 @@ export default function FeaturedVideoCarousel() {
   return (
     <section className="py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-2xl font-bold mb-6 text-center text-[#5a3c20]">Featured Video Stories</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-[#5a3c20]">
+          Featured Video Stories
+        </h2>
         <Swiper
           modules={[Navigation]}
           navigation
@@ -85,7 +87,9 @@ export default function FeaturedVideoCarousel() {
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
                 <div className="p-4 w-full">
-                  <div className="font-semibold text-lg text-gray-800">{video.creator}</div>
+                  <div className="font-semibold text-lg text-gray-800">
+                    {video.creator}
+                  </div>
                   <div className="text-sm text-gray-600">{video.craft}</div>
                 </div>
               </div>

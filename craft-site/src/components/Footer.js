@@ -12,7 +12,12 @@ const socials = [
     name: "Instagram",
     href: "#",
     icon: (
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+      <svg
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        className="w-6 h-6"
+      >
         <rect width="20" height="20" x="2" y="2" rx="5" strokeWidth="2" />
         <circle cx="12" cy="12" r="5" strokeWidth="2" />
         <circle cx="17" cy="7" r="1.5" fill="currentColor" />
@@ -56,7 +61,12 @@ export default function Footer() {
         {/* Social Icons */}
         <div className="flex gap-6">
           {socials.map((social) => (
-            <a key={social.name} href={social.href} aria-label={social.name} className="hover:text-pink-400">
+            <a
+              key={social.name}
+              href={social.href}
+              aria-label={social.name}
+              className="hover:text-pink-400"
+            >
               {social.icon}
             </a>
           ))}
@@ -64,4 +74,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-} 
+}

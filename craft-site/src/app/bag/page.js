@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
-import { useUser } from '../../context/UserContext';
+import { useUser } from "../../context/UserContext";
 
 const cartItems = [
   {
@@ -10,15 +10,15 @@ const cartItems = [
     name: "Handmade Silver Ring",
     price: "$45.00",
     image: "/placeholder-product1.jpg",
-    quantity: 1
+    quantity: 1,
   },
   {
     id: 2,
     name: "Ceramic Vase",
     price: "$60.00",
     image: "/placeholder-product2.jpg",
-    quantity: 2
-  }
+    quantity: 2,
+  },
 ];
 
 export default function BagPage() {
@@ -33,8 +33,8 @@ export default function BagPage() {
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
-      const price = parseFloat(item.price.replace('$', ''));
-      return total + (price * item.quantity);
+      const price = parseFloat(item.price.replace("$", ""));
+      return total + price * item.quantity;
     }, 0);
   };
 
@@ -58,13 +58,15 @@ export default function BagPage() {
       <Header />
       <main className="flex-1 py-10">
         <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-8 text-center text-[#5a3c20]">Shopping Bag</h1>
+          <h1 className="text-3xl font-bold mb-8 text-center text-[#5a3c20]">
+            Shopping Bag
+          </h1>
 
           {cartItems.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-600 text-lg">Your bag is empty</p>
               <button
-                onClick={() => router.push('/shop-now')}
+                onClick={() => router.push("/shop-now")}
                 className="mt-4 bg-[#8B5C2A] text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-[#6B3F16] transition"
               >
                 Continue Shopping
@@ -75,21 +77,32 @@ export default function BagPage() {
               {/* Cart Items */}
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-800">Items ({cartItems.length})</h2>
+                  <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                    Items ({cartItems.length})
+                  </h2>
                   {cartItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 py-4 border-b border-gray-200 last:border-b-0">
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-4 py-4 border-b border-gray-200 last:border-b-0"
+                    >
                       <img
                         src={item.image}
                         alt={item.name}
                         className="w-20 h-20 object-cover rounded"
-                        onError={e => e.target.src = '/handmaking.jpeg'}
+                        onError={(e) => (e.target.src = "/handmaking.jpeg")}
                       />
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                        <h3 className="font-semibold text-gray-800">
+                          {item.name}
+                        </h3>
                         <p className="text-[#8B5C2A] font-bold">{item.price}</p>
-                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        <p className="text-sm text-gray-600">
+                          Quantity: {item.quantity}
+                        </p>
                       </div>
-                      <button className="text-red-500 hover:text-red-700">Remove</button>
+                      <button className="text-red-500 hover:text-red-700">
+                        Remove
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -98,7 +111,9 @@ export default function BagPage() {
               {/* Order Summary */}
               <div className="lg:col-span-1">
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-800">Order Summary</h2>
+                  <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                    Order Summary
+                  </h2>
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
@@ -124,4 +139,4 @@ export default function BagPage() {
       </main>
     </div>
   );
-} 
+}

@@ -113,15 +113,25 @@ export default function ShopNow() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      
+
       {/* Mobile Sidebar Toggle */}
       <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="flex items-center space-x-2 text-[#8B5C2A] font-semibold"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
           <span>Categories</span>
         </button>
@@ -129,14 +139,18 @@ export default function ShopNow() {
 
       <div className="flex-1 flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className={`
-          ${sidebarOpen ? 'block' : 'hidden'} 
+        <div
+          className={`
+          ${sidebarOpen ? "block" : "hidden"} 
           lg:block lg:w-64 lg:flex-shrink-0 
           bg-white border-r border-gray-200
           lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto
-        `}>
+        `}
+        >
           <div className="p-6">
-            <h2 className="text-xl font-bold text-[#5a3c20] mb-6 lg:mb-8">Categories</h2>
+            <h2 className="text-xl font-bold text-[#5a3c20] mb-6 lg:mb-8">
+              Categories
+            </h2>
             <nav className="space-y-2">
               {categories.map((category) => (
                 <button
@@ -159,25 +173,37 @@ export default function ShopNow() {
             <div className="max-w-7xl mx-auto">
               {/* Header */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-[#5a3c20] mb-2">Recommended for You</h1>
-                <p className="text-gray-600">Curated products based on your preferences and purchase history</p>
+                <h1 className="text-3xl font-bold text-[#5a3c20] mb-2">
+                  Recommended for You
+                </h1>
+                <p className="text-gray-600">
+                  Curated products based on your preferences and purchase
+                  history
+                </p>
               </div>
 
               {/* Products Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {products.map((product) => (
-                  <div key={product.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                  <div
+                    key={product.id}
+                    className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+                  >
                     <div className="aspect-square overflow-hidden">
                       <img
                         src={product.image}
                         alt={product.name}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        onError={e => e.target.src = '/handmaking.jpeg'}
+                        onError={(e) => (e.target.src = "/handmaking.jpeg")}
                       />
                     </div>
                     <div className="p-4">
-                      <div className="font-semibold text-gray-800 mb-1 line-clamp-2">{product.name}</div>
-                      <div className="text-[#8B5C2A] font-bold text-lg mb-3">{product.price}</div>
+                      <div className="font-semibold text-gray-800 mb-1 line-clamp-2">
+                        {product.name}
+                      </div>
+                      <div className="text-[#8B5C2A] font-bold text-lg mb-3">
+                        {product.price}
+                      </div>
                       <button className="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors duration-200">
                         Add to Cart
                       </button>

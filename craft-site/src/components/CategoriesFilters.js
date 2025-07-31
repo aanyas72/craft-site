@@ -11,7 +11,9 @@ export default function CategoriesFilters() {
   return (
     <section className="py-8 bg-white">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-2xl font-bold mb-6 text-center text-[#5a3c20]">Browse by Category</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-[#5a3c20]">
+          Browse by Category
+        </h2>
         <div className="flex flex-wrap justify-center gap-6">
           {categories.map((cat) => (
             <a
@@ -26,4 +28,4 @@ export default function CategoriesFilters() {
       </div>
     </section>
   );
-} 
+}

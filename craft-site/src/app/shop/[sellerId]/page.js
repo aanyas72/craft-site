@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
 import Header from "../../components/Header";
-import { useUser } from '../../context/UserContext';
+import { useUser } from "../../context/UserContext";
 
 export default function SellerShopPage() {
   const { sellerId } = useParams();
@@ -56,28 +56,42 @@ export default function SellerShopPage() {
           </h1>
           {user && user.id === sellerId && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded text-center font-semibold">
-              This is your shop page. You can manage your products in <a href="/my-shop" className="underline text-green-900">My Shop</a>.
+              This is your shop page. You can manage your products in{" "}
+              <a href="/my-shop" className="underline text-green-900">
+                My Shop
+              </a>
+              .
             </div>
           )}
         </div>
         <div className="w-full max-w-2xl">
           {products.length === 0 ? (
-            <div className="text-center text-gray-600">No products found for this seller.</div>
+            <div className="text-center text-gray-600">
+              No products found for this seller.
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {products.map((product) => (
                 <div key={product.id} className="bg-white p-4 rounded shadow">
                   {product.image_url && (
-                    <img src={product.image_url} alt={product.name} className="w-full h-48 object-cover rounded mb-2" />
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-48 object-cover rounded mb-2"
+                    />
                   )}
                   <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
                   <p className="text-gray-700 mb-1">{product.description}</p>
-                  <p className="text-gray-900 font-bold mb-1">${product.price}</p>
-                  <p className="text-xs text-gray-500">Category: {product.category}</p>
+                  <p className="text-gray-900 font-bold mb-1">
+                    ${product.price}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Category: {product.category}
+                  </p>
                   {product.video_url && (
                     <div className="mt-2">
-                      <video 
-                        controls 
+                      <video
+                        controls
                         className="w-full h-48 object-cover rounded"
                         preload="metadata"
                       >
@@ -94,4 +108,4 @@ export default function SellerShopPage() {
       </main>
     </div>
   );
-} 
+}

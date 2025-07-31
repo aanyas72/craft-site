@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2, FiEye, FiEyeOff } from "react-icons/fi";
 import { supabase } from "../../../lib/supabase";
 import Header from "../../components/Header";
-import { useUser } from '../../context/UserContext';
+import { useUser } from "../../context/UserContext";
 
 export default function MyShopPage() {
   const { user, loading, isSeller } = useUser();
@@ -18,7 +18,7 @@ export default function MyShopPage() {
     price: "",
     category: "",
     image_url: "",
-    video_url: ""
+    video_url: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -38,18 +38,18 @@ export default function MyShopPage() {
   const fetchUserProducts = async (userId) => {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('seller_id', userId)
-        .order('created_at', { ascending: false });
+        .from("products")
+        .select("*")
+        .eq("seller_id", userId)
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Error fetching products:', error);
+        console.error("Error fetching products:", error);
       } else {
         setProducts(data || []);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     }
   };
 
@@ -60,11 +60,11 @@ export default function MyShopPage() {
     // Validate required uploads
     // TODO: change alerts later
     if (!formData.image_url) {
-      alert('Please upload a product image. Images are required.');
+      alert("Please upload a product image. Images are required.");
       return;
     }
     if (!formData.video_url) {
-      alert('Please upload a product video. Videos are required.');
+      alert("Please upload a product video. Videos are required.");
       return;
     }
 
@@ -76,26 +76,24 @@ export default function MyShopPage() {
         price: parseFloat(formData.price),
         category: formData.category,
         image_url: formData.image_url,
-        video_url: formData.video_url
+        video_url: formData.video_url,
       };
 
       let result;
       if (editingProduct) {
         // Update existing product
         result = await supabase
-          .from('products')
+          .from("products")
           .update(productData)
-          .eq('id', editingProduct.id);
+          .eq("id", editingProduct.id);
       } else {
         // Insert new product
-        result = await supabase
-          .from('products')
-          .insert(productData);
+        result = await supabase.from("products").insert(productData);
       }
 
       if (result.error) {
-        console.error('Error saving product:', result.error);
-        alert('Failed to save product. Please try again.');
+        console.error("Error saving product:", result.error);
+        alert("Failed to save product. Please try again.");
       } else {
         // Reset form and refresh products
         setFormData({
@@ -104,18 +102,22 @@ export default function MyShopPage() {
           price: "",
           category: "",
           image_url: "",
-          video_url: ""
+          video_url: "",
         });
         setImageFile(null);
         setVideoFile(null);
         setEditingProduct(null);
         setShowAddForm(false);
         await fetchUserProducts(user.id);
-        alert(editingProduct ? 'Product updated successfully!' : 'Product added successfully!');
+        alert(
+          editingProduct
+            ? "Product updated successfully!"
+            : "Product added successfully!"
+        );
       }
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Failed to save product. Please try again.');
+      console.error("Error saving product:", error);
+      alert("Failed to save product. Please try again.");
     }
   };
 
@@ -127,66 +129,75 @@ export default function MyShopPage() {
       price: product.price.toString(),
       category: product.category || "",
       image_url: product.image_url || "",
-      video_url: product.video_url || ""
+      video_url: product.video_url || "",
     });
     setShowAddForm(true);
   };
 
   const handleDelete = async (productId) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .delete()
-        .eq('id', productId);
+        .eq("id", productId);
 
       if (error) {
-        console.error('Error deleting product:', error);
-        alert('Failed to delete product. Please try again.');
+        console.error("Error deleting product:", error);
+        alert("Failed to delete product. Please try again.");
       } else {
         await fetchUserProducts(user.id);
-        alert('Product deleted successfully!');
+        alert("Product deleted successfully!");
       }
     } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Failed to delete product. Please try again.');
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product. Please try again.");
     }
   };
 
   const toggleProductStatus = async (product) => {
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ is_active: !product.is_active })
-        .eq('id', product.id);
+        .eq("id", product.id);
 
       if (error) {
-        console.error('Error updating product status:', error);
-        alert('Failed to update product status. Please try again.');
+        console.error("Error updating product status:", error);
+        alert("Failed to update product status. Please try again.");
       } else {
         await fetchUserProducts(user.id);
       }
     } catch (error) {
-      console.error('Error updating product status:', error);
-      alert('Failed to update product status. Please try again.');
+      console.error("Error updating product status:", error);
+      alert("Failed to update product status. Please try again.");
     }
   };
 
   const handleVideoUpload = async (file) => {
     if (!file) return;
-    
+
     // Check file size (50MB = 50 * 1024 * 1024 bytes)
     const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('Video file size must be less than 50MB');
+      alert("Video file size must be less than 50MB");
       return;
     }
 
     // Check file type
-    const allowedTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/flv', 'video/webm'];
+    const allowedTypes = [
+      "video/mp4",
+      "video/avi",
+      "video/mov",
+      "video/wmv",
+      "video/flv",
+      "video/webm",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload a valid video file (MP4, AVI, MOV, WMV, FLV, or WebM)');
+      alert(
+        "Please upload a valid video file (MP4, AVI, MOV, WMV, FLV, or WebM)"
+      );
       return;
     }
 
@@ -194,25 +205,25 @@ export default function MyShopPage() {
     try {
       const fileName = `videos/${user.id}/${Date.now()}_${file.name}`;
       const { data, error } = await supabase.storage
-        .from('product-videos')
+        .from("product-videos")
         .upload(fileName, file);
 
       if (error) {
-        console.error('Error uploading video:', error);
-        alert('Failed to upload video. Please try again.');
+        console.error("Error uploading video:", error);
+        alert("Failed to upload video. Please try again.");
         return;
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-videos')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("product-videos").getPublicUrl(fileName);
 
-      setFormData(prev => ({ ...prev, video_url: publicUrl }));
-      alert('Video uploaded successfully!');
+      setFormData((prev) => ({ ...prev, video_url: publicUrl }));
+      alert("Video uploaded successfully!");
     } catch (error) {
-      console.error('Error uploading video:', error);
-      alert('Failed to upload video. Please try again.');
+      console.error("Error uploading video:", error);
+      alert("Failed to upload video. Please try again.");
     } finally {
       setVideoUploading(false);
     }
@@ -228,18 +239,24 @@ export default function MyShopPage() {
 
   const handleImageUpload = async (file) => {
     if (!file) return;
-    
+
     // Check file size (10MB = 10 * 1024 * 1024 bytes)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('Image file size must be less than 10MB');
+      alert("Image file size must be less than 10MB");
       return;
     }
 
     // Check file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
+      alert("Please upload a valid image file (JPEG, PNG, GIF, or WebP)");
       return;
     }
 
@@ -247,25 +264,25 @@ export default function MyShopPage() {
     try {
       const fileName = `images/${user.id}/${Date.now()}_${file.name}`;
       const { data, error } = await supabase.storage
-        .from('product-images')
+        .from("product-images")
         .upload(fileName, file);
 
       if (error) {
-        console.error('Error uploading image:', error);
-        alert('Failed to upload image. Please try again.');
+        console.error("Error uploading image:", error);
+        alert("Failed to upload image. Please try again.");
         return;
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("product-images").getPublicUrl(fileName);
 
-      setFormData(prev => ({ ...prev, image_url: publicUrl }));
-      alert('Image uploaded successfully!');
+      setFormData((prev) => ({ ...prev, image_url: publicUrl }));
+      alert("Image uploaded successfully!");
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Failed to upload image. Please try again.');
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
     } finally {
       setImageUploading(false);
     }
@@ -286,7 +303,7 @@ export default function MyShopPage() {
       price: "",
       category: "",
       image_url: "",
-      video_url: ""
+      video_url: "",
     });
     setImageFile(null);
     setVideoFile(null);
@@ -318,10 +335,14 @@ export default function MyShopPage() {
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md mx-auto p-6">
-            <h1 className="text-2xl font-bold text-[#5a3c20] mb-4">Access Denied</h1>
-            <p className="text-gray-600 mb-6">You need to be a seller to access the My Shop page.</p>
+            <h1 className="text-2xl font-bold text-[#5a3c20] mb-4">
+              Access Denied
+            </h1>
+            <p className="text-gray-600 mb-6">
+              You need to be a seller to access the My Shop page.
+            </p>
             <button
-              onClick={() => router.push('/sell')}
+              onClick={() => router.push("/sell")}
               className="bg-[#8B5C2A] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#6B3F16] transition"
             >
               Become a Seller
@@ -340,7 +361,9 @@ export default function MyShopPage() {
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-[#5a3c20] mb-2">My Shop</h1>
+              <h1 className="text-3xl font-bold text-[#5a3c20] mb-2">
+                My Shop
+              </h1>
               <p className="text-gray-600">Manage your product listings</p>
             </div>
             <button
@@ -358,13 +381,21 @@ export default function MyShopPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-yellow-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-yellow-800">
-                      Your shop is not verified. 
+                      Your shop is not verified.
                       <button className="ml-2 text-yellow-800 underline hover:text-yellow-900 font-medium">
                         Get Verified!
                       </button>
@@ -387,14 +418,14 @@ export default function MyShopPage() {
                 View your public shop
               </a>
             </div>
-          )} 
+          )}
 
           {/* Add/Edit Product Form */}
           {/* TODO: get the categories from the product page/db */}
           {showAddForm && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold text-[#5a3c20] mb-4">
-                {editingProduct ? 'Edit Product' : 'Add New Product'}
+                {editingProduct ? "Edit Product" : "Add New Product"}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -406,7 +437,9 @@ export default function MyShopPage() {
                       type="text"
                       required
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
                       placeholder="Enter product name"
                     />
@@ -421,7 +454,9 @@ export default function MyShopPage() {
                       min="0"
                       required
                       value={formData.price}
-                      onChange={(e) => setFormData({...formData, price: e.target.value})}
+                      onChange={(e) =>
+                        setFormData({ ...formData, price: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
                       placeholder="0.00"
                     />
@@ -433,7 +468,9 @@ export default function MyShopPage() {
                   </label>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
                   >
                     <option value="">Select a category</option>
@@ -460,7 +497,9 @@ export default function MyShopPage() {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                     rows="3"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8B5C2A]"
                     placeholder="Describe your product..."
@@ -529,7 +568,7 @@ export default function MyShopPage() {
                     type="submit"
                     className="bg-[#8B5C2A] text-white px-6 py-2 rounded-md font-semibold hover:bg-[#6B3F16] transition"
                   >
-                    {editingProduct ? 'Update Product' : 'Add Product'}
+                    {editingProduct ? "Update Product" : "Add Product"}
                   </button>
                   <button
                     type="button"
@@ -546,45 +585,58 @@ export default function MyShopPage() {
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+              >
                 <div className="aspect-square overflow-hidden">
                   <img
-                    src={product.image_url || '/handmaking.jpeg'}
+                    src={product.image_url || "/handmaking.jpeg"}
                     alt={product.name}
                     className="w-full h-full object-cover"
-                    onError={e => e.target.src = '/handmaking.jpeg'}
+                    onError={(e) => (e.target.src = "/handmaking.jpeg")}
                   />
                   <div className="absolute top-2 right-2">
                     <button
                       onClick={() => toggleProductStatus(product)}
                       className={`p-2 rounded-full ${
-                        product.is_active 
-                          ? 'bg-green-500 text-white' 
-                          : 'bg-gray-500 text-white'
+                        product.is_active
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-500 text-white"
                       } hover:opacity-80 transition`}
-                      title={product.is_active ? 'Active' : 'Inactive'}
+                      title={product.is_active ? "Active" : "Inactive"}
                     >
-                      {product.is_active ? <FiEye className="w-4 h-4" /> : <FiEyeOff className="w-4 h-4" />}
+                      {product.is_active ? (
+                        <FiEye className="w-4 h-4" />
+                      ) : (
+                        <FiEyeOff className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-gray-800 line-clamp-2 flex-1">{product.name}</h3>
+                    <h3 className="font-semibold text-gray-800 line-clamp-2 flex-1">
+                      {product.name}
+                    </h3>
                     <span className="text-[#8B5C2A] font-bold text-lg ml-2">
                       ${product.price}
                     </span>
                   </div>
                   {product.category && (
-                    <p className="text-sm text-gray-600 mb-2">{product.category}</p>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {product.category}
+                    </p>
                   )}
                   {product.description && (
-                    <p className="text-sm text-gray-700 mb-3 line-clamp-2">{product.description}</p>
+                    <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
                   )}
                   {product.video_url && (
                     <div className="mb-3">
-                      <video 
-                        controls 
+                      <video
+                        controls
                         className="w-full h-32 object-cover rounded"
                         preload="metadata"
                       >
@@ -619,8 +671,12 @@ export default function MyShopPage() {
               <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiPlus className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">No products yet</h3>
-              <p className="text-gray-600 mb-6">Start building your shop by adding your first product.</p>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                No products yet
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Start building your shop by adding your first product.
+              </p>
               <button
                 onClick={() => setShowAddForm(true)}
                 className="bg-[#8B5C2A] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#6B3F16] transition"
