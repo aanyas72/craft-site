@@ -26,9 +26,21 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+DROP TABLE IF EXISTS bags;
+CREATE TABLE IF NOT EXISTS bags (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  product_id UUID REFERENCES products.id ON DELETE CASCADE NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT unique_user_product UNIQUE (user_id, product_id)
+);
+
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bags ENABLE ROW LEVEL SECURITY;
 
 -- Create policies for profiles table
 CREATE POLICY "Users can view their own profile" ON profiles
@@ -57,6 +69,19 @@ CREATE POLICY "Sellers can update their own products" ON products
 
 CREATE POLICY "Sellers can delete their own products" ON products
   FOR DELETE USING ((select auth.uid()) = seller_id);
+
+-- Create policies for bags table
+CREATE POLICY "Users can view their own bag" ON bags
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can add to their own bag" ON bags
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own bag" ON bags
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete from their own bag" ON bags
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- Create a function to handle new user signups
 CREATE OR REPLACE FUNCTION handle_new_user()
